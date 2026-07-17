@@ -6,7 +6,7 @@ However, when trying to subset a dataframe with multiple conditions, the syntax 
 
 The SQLite library has a very efficient Relational Database Management System (RDBMS). SQLite3 provides users with many beneficial features, the most noticeable being that it is self-contained, severless, and zero-configuration (What is SQLite? Top SQLite Features You Should Know 2020).
 
-SQLite3 in Action
+## SQLite3 in Action
 For this tutorial I will install and load in the necessary libraries, connect to the database, and then begin sending queries. A few of the examples used below were taken from _LucasMcL/15-sql_queries_02-chinook_. The installation may not be needed if you’re using Python version 3.
 
 Installing SQLite3
@@ -22,15 +22,14 @@ Now that we are connected to the database, we can query the data within. Using t
 Executing a query with the SELECT statement and the WHERE clause to see how many tables are in the database. The WHERE clause generally filters results of a query by some condition. In the example below, I am using it to return the name of objects in the database that are of the type ‘table’. Every SQLite database has an sqlite_master table containing information about the schema. Ending the query with a semicolon indicates the end of a statement. If we wanted the query to return all records in the table, use an asterix(*) in place of name.
 cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
 print(cur.fetchall())
-#Output:
+# Output:
 [('Album',), ('Artist',), ('Customer',), ('Employee',), ('Genre',), ('Invoice',), ('InvoiceLine',), ('MediaType',), ('Playlist',), ('PlaylistTrack',), ('Track',)]
 The output of this query statement returned all of the tables in the database.
 Say we wanted even more detailed information on each of the tables in the database, the PRAGMA command will give us just that.
-
 cur.execute("PRAGMA table_info(Employee)")
 info = cur.fetchall()
 print(*info, sep = "n")
-#Output:
+# Output:
 (0, 'EmployeeId', 'INTEGER', 1, None, 1)
 (1, 'LastName', 'NVARCHAR(20)', 1, None, 0)
 (2, 'FirstName', 'NVARCHAR(20)', 1, None, 0)
@@ -39,7 +38,7 @@ print(*info, sep = "n")
 (5, 'BirthDate', 'DATETIME', 0, None, 0)
 (6, 'HireDate', 'DATETIME', 0, None, 0)
 (7, 'Address', 'NVARCHAR(70)', 0, None, 0)
-(8, 'City', 'NVARCHAR(40)', 0, None, 0)
+(8, 'City', 'NVARCHAR(40)', 0, None, 0) 
 (9, 'State', 'NVARCHAR(40)', 0, None, 0)
 (10, 'Country', 'NVARCHAR(40)', 0, None, 0)
 (11, 'PostalCode', 'NVARCHAR(10)', 0, None, 0)
@@ -58,7 +57,7 @@ If you’d like the output in a format where you can manipulate or process the d
 7. null_ok
 Using the description attribute, we can fetch the name of each column using list comprehension. Below is a query statement selecting the customers’ full name, id, and country who are not in the US with the results wrapped in a dataframe.
 
-#Importing Pandas
+# Importing Pandas
 import pandas as pd
 cur.execute("""
     SELECT FirstName, LastName, CustomerId, Country
@@ -68,17 +67,12 @@ cur.execute("""
 df = pd.DataFrame(cur.fetchall())
 df.columns = [x[0] for x in cur.description]
 df.head(10)
-#Output:
-
+# Output:
 Filtering and Ordering with SQL
 Back to the point where SQL queries allow you to retrieve only the data relevant to your task. There are a handful of query modifiers I will go over, ORDER BY being the first. This modifier allows us to sort the results of a SELECT statement by a particular feature.
-
 The LIMIT clause is exactly what it sounds like, it limits the output to a set number of results. This is similar to viewing the output of a Pandas dataframe using the df.head(10) attribute.
-
 The BETWEEN operator allows us to further select specific data by filtering the results that are between set values. This can be extremely useful when querying for a specific age group, time frame, etc.
-
 Below I am executing a query to select data from the track table where the track’s length in milliseconds is between 205205 and 300000. The results are sorted by the tracks’ milliseconds and in descending order, so the tracks with the longer tracks will be at the top. I am also limiting this query to only output 10 results.
-
 cur.execute("""
     SELECT Name, AlbumId, TrackId, Milliseconds
     FROM track
@@ -88,7 +82,7 @@ cur.execute("""
 """)
 info = cur.fetchall()
 print(*info, sep = "n")
-#Output:
+# Output:
 ('Breathe', 212, 2613, 299781)
 ('Queixa', 23, 524, 299676)
 ('Getaway Car', 10, 97, 299598)
@@ -101,11 +95,8 @@ print(*info, sep = "n")
 ('The Spirit Of Radio', 196, 2406, 299154)
 Aggregate Functions
 These SQL functions can be really helpful when performing statistical analysis. We can get the average values, minimum and maximum values, and the sum of values in a column. The COUNT function returns the number of records that meet a certain condition.
-
 The GROUP BY function will return your results grouped together by a set column. Examples of this would be grouping results by gender, breed, or nationality.
-
 Below is an example query for total sales per country with the results being grouped by each country. I am also aliasing the sum of totals as ‘TotalSales’ in order to group the results by the total sales for each country.
-
 cur.execute('''
     SELECT i.billingcountry, sum(total) as 'TotalSales'
     FROM invoice AS i
@@ -113,10 +104,9 @@ cur.execute('''
     ORDER BY totalsales DESC
     '''
 )
-
 info = cur.fetchall()
 print(*info, sep = "n")
-#Output:
+# Output:
 ('USA', 523.0600000000003)
 ('Canada', 303.9599999999999)
 ('France', 195.09999999999994)
