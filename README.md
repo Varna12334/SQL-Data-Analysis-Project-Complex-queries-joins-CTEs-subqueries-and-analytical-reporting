@@ -134,3 +134,4 @@ print(*info, sep = "n")
 If you would like to take a further look into SQL aggregators and select statements, sqlclauses and zetcode provide some very useful examples.
 
 https://github.com/Varna12334/SQL
+https://roadmap.sh/projects/querying-sql-python
