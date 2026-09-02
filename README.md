@@ -1,36 +1,209 @@
-# SQL
-### SQL is a standard when it comes to manipulating and querying data. 
- One of key benefits being that SQL allows users to quickly and efficiently input and retrieve information from relational databases. A relational database is a type of database that stores and provides access to data points that are related to one another (Oracle, What is a relational database?), think of this as an excel spreadsheet with columns and rows. They can be made up of one or more of these tables with each row identified by a unique key (primary key). The collection of these database objects is referred to as a Schema. Schemas are a useful mechanism to segregate database objects for different applications, access rights, and managing security administration of databases (Rajendra GuptaRajendra , 2019). One of my favorite advantages when using SQL would be having the ability to only retrieve the data that is task specific.
-### Normally, I do a majority of data manipulation and analysis using the Pandas library. 
-However, when trying to subset a dataframe with multiple conditions, the syntax gets pretty complicated. Using SQL statements such as SELECT, DISTINCT, and LIKE, we can save computation time by only retrieving the data that serves our goal. The image below is an example of a relational database schema. Each rectangle being a table, with the table name listed at the top. Below the each of the table names is a list of column names associated with each table. The column names with an asterix(*), gold keys in this case, indicate that it is the primary key (unique identifier) for the table. As you can see, the primary key from one table may also be in another table. This is known foreign key (the primary key from a different table), blue diamonds in this case.
+# E-Commerce Sales & Customer Analytics using SQL
 
-The SQLite library has a very efficient Relational Database Management System (RDBMS). SQLite3 provides users with many beneficial features, the most noticeable being that it is self-contained, severless, and zero-configuration (What is SQLite? Top SQLite Features You Should Know 2020).
+A portfolio-ready SQL project that models an e-commerce business and answers practical business questions using SQLite. The project demonstrates relational database design, data loading, joins, aggregations, subqueries, CTEs, window functions, filtering, and business-oriented analysis.
 
-## SQLite3 in Action
-For this tutorial I will install and load in the necessary libraries, connect to the database, and then begin sending queries. A few of the examples used below were taken from _LucasMcL/15-sql_queries_02-chinook_. The installation may not be needed if you’re using Python version 3.
+## 🎯 Project Objective
 
-Installing SQLite3
-Importing SQLite3
-pip install pysqlite3
+Analyze customers, products, orders, order items, and payments to answer questions such as:
+
+- How much revenue did the business generate?
+- Which products and categories sell the most?
+- Who are the highest-value customers?
+- How does revenue change month by month?
+- What payment methods contribute the most revenue?
+- Which products have low stock?
+- Which customers have repeat purchases?
+
+## 🗂️ Database Schema
+
+The database contains five related tables:
+
+```text
+customers  1 ────────< orders  1 ────────< order_items >──────── 1 products
+                         │
+                         └────────────────── 1 payments
+```
+
+### Tables
+
+| Table | Purpose |
+|---|---|
+| `customers` | Customer profile and location information |
+| `products` | Product, category, price, and stock information |
+| `orders` | Customer orders, dates, and order status |
+| `order_items` | Products and quantities belonging to each order |
+| `payments` | Payment method, amount, and payment status |
+
+## 📊 Dataset
+
+The project uses a realistic synthetic e-commerce dataset designed for learning and portfolio analysis:
+
+- 30 customers
+- 20 products
+- 120 orders
+- 249 order-item records
+- Multiple product categories
+- Multiple payment methods
+- Delivered, shipped, processing, and cancelled orders
+
+No real customer or payment information is used.
+
+## 🧰 Technologies
+
+- **SQL** — data querying and analysis
+- **SQLite** — relational database engine
+- **Python / Pandas** — compatible with the original learning workflow
+
+## 📁 Project Structure
+
+```text
+SQL/
+├── README.md
+└── sql/
+    ├── schema.sql
+    ├── data.sql
+    ├── order_items.sql
+    ├── payments.sql
+    └── analysis_queries.sql
+```
+
+## 🚀 How to Run
+
+### Option 1: SQLite CLI
+
+Create a database and run the scripts in this order:
+
+```bash
+sqlite3 ecommerce.db
+.read sql/schema.sql
+.read sql/data.sql
+.read sql/order_items.sql
+.read sql/payments.sql
+.read sql/analysis_queries.sql
+.quit
+```
+
+### Option 2: Python
+
+```python
 import sqlite3
-Connecting to the database
-conn = sqlite3.connect('data/Chinook_Sqlite.sqlite')
-Instantiating a cursor object to fetch query results
-cur = conn.cursor()
-Now that we are connected to the database, we can query the data within. Using the cursor object to execute queries only returns the cursor object. In order to see the results, we need to use the fetchall() method afterwards.
 
-Executing a query with the SELECT statement and the WHERE clause to see how many tables are in the database. The WHERE clause generally filters results of a query by some condition. In the example below, I am using it to return the name of objects in the database that are of the type ‘table’. Every SQLite database has an sqlite_master table containing information about the schema. Ending the query with a semicolon indicates the end of a statement. If we wanted the query to return all records in the table, use an asterix(*) in place of name.
-cur.execute("SELECT name FROM sqlite_master WHERE type='table';")print(cur.fetchall())
+conn = sqlite3.connect("ecommerce.db")
 
+for file in [
+    "sql/schema.sql",
+    "sql/data.sql",
+    "sql/order_items.sql",
+    "sql/payments.sql"
+]:
+    with open(file, "r", encoding="utf-8") as f:
+        conn.executescript(f.read())
 
-# Importing Pandas
-import pandas as pd
-cur.execute("""
-    SELECT FirstName, LastName, CustomerId, Country
-    FROM customer
-    WHERE country != 'USA'
+cursor = conn.cursor()
+cursor.execute("""
+    SELECT category, ROUND(SUM(quantity * unit_price), 2) AS revenue
+    FROM order_items oi
+    JOIN products p ON oi.product_id = p.product_id
+    JOIN orders o ON oi.order_id = o.order_id
+    WHERE o.order_status <> 'Cancelled'
+    GROUP BY category
+    ORDER BY revenue DESC;
 """)
-df = pd.DataFrame(cur.fetchall())
-df.columns = [x[0] for x in cur.description]
-df.head(10)
 
+for row in cursor.fetchall():
+    print(row)
+
+conn.close()
+```
+
+## 🔎 SQL Concepts Demonstrated
+
+### Beginner / Intermediate
+
+- `SELECT`
+- `WHERE`
+- `ORDER BY`
+- `DISTINCT`
+- `LIKE`
+- `LIMIT`
+- `COUNT`, `SUM`, `AVG`
+- `GROUP BY`
+- `HAVING`
+- `INNER JOIN`
+- `LEFT JOIN`
+
+### Advanced
+
+- Subqueries
+- Common Table Expressions (`WITH` / CTE)
+- Window functions (`RANK()`)
+- `CASE` expressions
+- `NOT EXISTS`
+- Date analysis with SQLite `strftime()`
+- Constraints and foreign keys
+- Indexes
+
+## 💼 Business Questions
+
+The `analysis_queries.sql` file contains 15 practical analyses, including:
+
+1. Customers from Andhra Pradesh
+2. Total revenue excluding cancelled orders
+3. Monthly revenue
+4. Top products by units sold and revenue
+5. Revenue by product category
+6. Top customers by lifetime revenue
+7. Average order value
+8. Order-status distribution
+9. Payment method performance
+10. Customers with more than three delivered orders
+11. Products priced above the average price
+12. Product ranking within each category
+13. Customers above average customer revenue
+14. Low-stock products
+15. Customers with no cancelled orders
+
+## 📌 Example Query
+
+**Find the top products by revenue:**
+
+```sql
+SELECT p.product_name,
+       SUM(oi.quantity) AS units_sold,
+       ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+JOIN orders o ON oi.order_id = o.order_id
+WHERE o.order_status <> 'Cancelled'
+GROUP BY p.product_id, p.product_name
+ORDER BY revenue DESC
+LIMIT 10;
+```
+
+This demonstrates joins, filtering, aggregation, grouping, calculated metrics, sorting, and limiting results in one business-oriented query.
+
+## 📈 Portfolio Value
+
+This project demonstrates the ability to:
+
+- Design a normalized relational schema
+- Work with primary and foreign keys
+- Load and query structured data
+- Combine multiple tables with joins
+- Build business metrics from raw transactional data
+- Use intermediate and advanced SQL techniques
+- Translate business questions into SQL queries
+
+## 🔮 Future Improvements
+
+- Add a Python data-analysis notebook
+- Create visualizations using Pandas and Matplotlib
+- Add a Power BI dashboard
+- Add automated data-quality checks
+- Expand the dataset for more advanced customer segmentation
+
+## 👩‍💻 Author
+
+**Varna Doddigarla**
+
+Computer Science & Engineering | SQL | Python | Data & AI Projects
